@@ -466,10 +466,16 @@ func (d *Discoverer) rdsInstanceToNode(instance *rdstypes.DBInstance) *graph.Nod
 		}
 	}
 
+	// DBInstanceArn is required for node creation
+	arn := ""
+	if instance.DBInstanceArn != nil {
+		arn = *instance.DBInstanceArn
+	}
+
 	return &graph.Node{
-		ID:       *instance.DBInstanceArn,
+		ID:       arn,
 		Type:     ResourceTypeRDSInstance,
-		ARN:      *instance.DBInstanceArn,
+		ARN:      arn,
 		Name:     name,
 		Region:   region,
 		Account:  account,
@@ -517,10 +523,16 @@ func (d *Discoverer) rdsClusterToNode(cluster *rdstypes.DBCluster) *graph.Node {
 		metadata["readerEndpoint"] = *cluster.ReaderEndpoint
 	}
 
+	// DBClusterArn is required for node creation
+	arn := ""
+	if cluster.DBClusterArn != nil {
+		arn = *cluster.DBClusterArn
+	}
+
 	return &graph.Node{
-		ID:       *cluster.DBClusterArn,
+		ID:       arn,
 		Type:     ResourceTypeRDSCluster,
-		ARN:      *cluster.DBClusterArn,
+		ARN:      arn,
 		Name:     name,
 		Region:   region,
 		Account:  account,
