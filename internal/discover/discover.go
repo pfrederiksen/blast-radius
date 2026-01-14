@@ -206,10 +206,11 @@ func (d *Discoverer) parseARN(arn string) (*graph.Node, error) {
 			node.Name = strings.TrimPrefix(resource, "function:")
 		}
 	case "rds":
-		if strings.HasPrefix(resource, "db:") {
+		switch {
+		case strings.HasPrefix(resource, "db:"):
 			node.Type = "RDSInstance"
 			node.Name = strings.TrimPrefix(resource, "db:")
-		} else if strings.HasPrefix(resource, "cluster:") {
+		case strings.HasPrefix(resource, "cluster:"):
 			node.Type = "RDSCluster"
 			node.Name = strings.TrimPrefix(resource, "cluster:")
 		}

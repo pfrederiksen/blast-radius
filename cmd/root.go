@@ -6,11 +6,12 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/pfrederiksen/blast-radius/internal/awsx"
 	"github.com/pfrederiksen/blast-radius/internal/discover"
 	"github.com/pfrederiksen/blast-radius/internal/graph"
 	"github.com/pfrederiksen/blast-radius/internal/output"
-	"github.com/spf13/cobra"
 )
 
 var (
