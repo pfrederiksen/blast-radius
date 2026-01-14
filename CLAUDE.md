@@ -22,7 +22,7 @@ The project was built in structured phases:
 3. **Checkpoint 4**: ECS service discovery + task definitions + IAM roles + auto-scaling + tests + docs ✅
 4. **Checkpoint 5**: Lambda function discovery + event sources + destinations + DLQ + VPC + tests + docs ✅
 5. **Checkpoint 6**: RDS instance/cluster discovery + subnet groups + security groups + parameter groups + heuristic-based upstream discovery + tests + docs ✅
-6. **Checkpoint 7**: Polish (max-nodes limits, evidence annotations, error handling) + examples + coverage optimization (Planned)
+6. **Checkpoint 7**: Polish + comprehensive examples + edge case tests + CHANGELOG + finalized documentation ✅
 
 ### Key Technical Decisions
 
