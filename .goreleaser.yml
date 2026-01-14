@@ -62,7 +62,7 @@ brews:
       owner: pfrederiksen
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    folder: Formula
+    directory: Formula
     homepage: https://github.com/pfrederiksen/blast-radius
     description: "Local-first AWS dependency graph CLI to understand blast radius before changes"
     license: Apache-2.0
