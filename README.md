@@ -102,14 +102,19 @@ Flags:
 - By ARN: `arn:aws:ecs:region:account:service/cluster-name/service-name`
 - By cluster/service: `cluster-name/service-name`
 
-### Lambda Functions 🚧
-**Status: Planned (Checkpoint 5)**
+### Lambda Functions ✅
+**Status: Fully implemented**
 - IAM execution role
-- Event source mappings (SQS, DynamoDB, Kinesis)
-- EventBridge rules
-- API Gateway integrations (best-effort)
-- Dead letter queues and destinations
-- VPC configuration
+- Event source mappings (SQS, DynamoDB streams, Kinesis streams, Kafka)
+- Event source mapping destinations (OnFailure)
+- Function event invoke config destinations (OnSuccess, OnFailure)
+- Dead letter queue configuration
+- VPC configuration (security groups, subnets)
+- Function metadata (runtime, handler, memory, timeout, layers)
+
+**Resolution methods:**
+- By ARN: `arn:aws:lambda:region:account:function:function-name`
+- By name: `function-name`
 
 ### RDS Instances/Clusters 🚧
 **Status: Planned (Checkpoint 6)**
@@ -178,6 +183,25 @@ Each edge contains:
 - `ecs:DescribeTaskDefinition`
 - `application-autoscaling:DescribeScalableTargets`
 - `application-autoscaling:DescribeScalingPolicies`
+
+**Lambda Function Discovery:**
+- Resolves functions by name or ARN via `GetFunction`
+- Discovers IAM execution role from function configuration
+- Discovers VPC configuration (security groups and subnets) if configured
+- Discovers dead letter queue (DLQ) from function configuration
+- Discovers event source mappings via `ListEventSourceMappings` (with pagination):
+  - Identifies source type from ARN (SQS, DynamoDB, Kinesis, Kafka)
+  - Tracks mapping state and batch size
+  - Discovers OnFailure destinations for event source mappings
+- Discovers function event invoke config destinations via `GetFunctionEventInvokeConfig`:
+  - OnSuccess destinations (SNS, SQS, Lambda, EventBridge)
+  - OnFailure destinations (SNS, SQS, Lambda, EventBridge)
+- Extracts function metadata: runtime, handler, memory, timeout, code size, layers
+
+**Permission Requirements:**
+- `lambda:GetFunction`
+- `lambda:ListEventSourceMappings`
+- `lambda:GetFunctionEventInvokeConfig`
 
 Missing permissions will be logged as warnings and discovery will continue with available data.
 
