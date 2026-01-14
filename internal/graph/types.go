@@ -18,10 +18,10 @@ type Node struct {
 
 // Edge represents a relationship between two resources
 type Edge struct {
-	From         string         // Source node ID
-	To           string         // Target node ID
-	RelationType string         // Type of relationship (forward, uses, member-of, etc.)
-	Evidence     Evidence       // How this relationship was discovered
+	From         string   // Source node ID
+	To           string   // Target node ID
+	RelationType string   // Type of relationship (forward, uses, member-of, etc.)
+	Evidence     Evidence // How this relationship was discovered
 }
 
 // Evidence tracks how a relationship was discovered

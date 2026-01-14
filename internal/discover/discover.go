@@ -206,10 +206,11 @@ func (d *Discoverer) parseARN(arn string) (*graph.Node, error) {
 			node.Name = strings.TrimPrefix(resource, "function:")
 		}
 	case "rds":
-		if strings.HasPrefix(resource, "db:") {
+		switch {
+		case strings.HasPrefix(resource, "db:"):
 			node.Type = "RDSInstance"
 			node.Name = strings.TrimPrefix(resource, "db:")
-		} else if strings.HasPrefix(resource, "cluster:") {
+		case strings.HasPrefix(resource, "cluster:"):
 			node.Type = "RDSCluster"
 			node.Name = strings.TrimPrefix(resource, "cluster:")
 		}
@@ -221,10 +222,6 @@ func (d *Discoverer) parseARN(arn string) (*graph.Node, error) {
 }
 
 // Placeholder resolution functions (will be implemented in discovery modules)
-func (d *Discoverer) resolveLoadBalancerByName(ctx context.Context, name string) (*graph.Node, error) {
-	return nil, fmt.Errorf("not implemented yet")
-}
-
 func (d *Discoverer) resolveECSService(ctx context.Context, cluster, service string) (*graph.Node, error) {
 	return nil, fmt.Errorf("not implemented yet")
 }
@@ -238,10 +235,6 @@ func (d *Discoverer) resolveRDSInstance(ctx context.Context, identifier string) 
 }
 
 // Placeholder discovery functions (will be implemented in separate files)
-func (d *Discoverer) discoverLoadBalancer(ctx context.Context, node *graph.Node, g *graph.Graph) ([]string, error) {
-	return nil, nil
-}
-
 func (d *Discoverer) discoverECSService(ctx context.Context, node *graph.Node, g *graph.Graph) ([]string, error) {
 	return nil, nil
 }

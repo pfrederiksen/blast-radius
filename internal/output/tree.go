@@ -16,11 +16,12 @@ func RenderTree(w io.Writer, g *graph.Graph, startID string) error {
 
 	for _, level := range levels {
 		fmt.Fprintf(w, "\n[Level %d] ", level.Depth)
-		if level.Depth == 0 {
+		switch level.Depth {
+		case 0:
 			fmt.Fprintf(w, "Root\n")
-		} else if level.Depth == 1 {
+		case 1:
 			fmt.Fprintf(w, "Direct Dependencies\n")
-		} else {
+		default:
 			fmt.Fprintf(w, "Transitive Dependencies\n")
 		}
 

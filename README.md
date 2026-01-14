@@ -1,5 +1,9 @@
 # blast-radius
 
+[![CI](https://github.com/pfrederiksen/blast-radius/actions/workflows/pr.yml/badge.svg)](https://github.com/pfrederiksen/blast-radius/actions/workflows/pr.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pfrederiksen/blast-radius)](https://goreportcard.com/report/github.com/pfrederiksen/blast-radius)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 Local-first AWS dependency graph CLI to understand blast radius before changes.
 
 ## Overview
@@ -73,21 +77,28 @@ Flags:
 
 ## Supported Resources
 
-### Application/Network Load Balancers (ALB/NLB)
+### Application/Network Load Balancers (ALB/NLB) ✅
+**Status: Fully implemented**
 - Listeners and listener rules
-- Target groups and registered targets
+- Target groups and registered targets (EC2 instances, IP targets, Lambda functions)
 - Security groups and VPC/subnets
-- Upstream Route 53 alias records
-- Upstream CloudFront distributions (best-effort)
+- Upstream Route 53 alias records (discovers DNS records pointing to the load balancer)
+- Target health status
 
-### ECS Services
+**Resolution methods:**
+- By ARN: `arn:aws:elasticloadbalancing:region:account:loadbalancer/app/name/id`
+- By name: `my-load-balancer`
+
+### ECS Services 🚧
+**Status: Planned (Checkpoint 4)**
 - Task definitions and tasks
 - Load balancers and target groups
 - IAM roles (task role, execution role)
 - Security groups and network configuration
 - Auto Scaling policies (best-effort)
 
-### Lambda Functions
+### Lambda Functions 🚧
+**Status: Planned (Checkpoint 5)**
 - IAM execution role
 - Event source mappings (SQS, DynamoDB, Kinesis)
 - EventBridge rules
@@ -95,7 +106,8 @@ Flags:
 - Dead letter queues and destinations
 - VPC configuration
 
-### RDS Instances/Clusters
+### RDS Instances/Clusters 🚧
+**Status: Planned (Checkpoint 6)**
 - Subnet groups and VPC
 - Security groups
 - Parameter groups
@@ -119,6 +131,32 @@ Each edge contains:
 - Source and target nodes
 - Relationship type
 - Evidence (API call and key fields)
+
+### Discovery Implementation
+
+**ALB/NLB Discovery:**
+- Resolves load balancers by name or ARN
+- Discovers listeners via `DescribeListeners` (with pagination)
+- Discovers listener rules via `DescribeRules` (with pagination)
+- Discovers target groups via `DescribeTargetGroups`
+- Discovers target health and registered targets via `DescribeTargetHealth`
+- Maps targets to EC2 instances, IP addresses, or Lambda functions based on target type
+- Discovers security groups and subnets from load balancer configuration
+- Discovers upstream Route 53 alias records by:
+  - Listing all hosted zones via `ListHostedZones`
+  - Searching each zone for alias records via `ListResourceRecordSets`
+  - Matching alias target DNS names to load balancer DNS names
+
+**Permission Requirements:**
+- `elasticloadbalancing:DescribeLoadBalancers`
+- `elasticloadbalancing:DescribeListeners`
+- `elasticloadbalancing:DescribeRules`
+- `elasticloadbalancing:DescribeTargetGroups`
+- `elasticloadbalancing:DescribeTargetHealth`
+- `route53:ListHostedZones`
+- `route53:ListResourceRecordSets`
+
+Missing permissions will be logged as warnings and discovery will continue with available data.
 
 ## Examples
 

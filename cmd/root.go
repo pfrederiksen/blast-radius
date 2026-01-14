@@ -6,21 +6,22 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/pfrederiksen/blast-radius/internal/awsx"
 	"github.com/pfrederiksen/blast-radius/internal/discover"
 	"github.com/pfrederiksen/blast-radius/internal/graph"
 	"github.com/pfrederiksen/blast-radius/internal/output"
-	"github.com/spf13/cobra"
 )
 
 var (
 	// Global flags
-	profile   string
-	region    string
-	depth     int
-	format    string
-	maxNodes  int
-	debug     bool
+	profile    string
+	region     string
+	depth      int
+	format     string
+	maxNodes   int
+	debug      bool
 	heuristics []string
 )
 
@@ -104,7 +105,7 @@ func runGraph(cmd *cobra.Command, args []string) error {
 		"profile", profile)
 
 	// Initialize clients
-	clients, err := awsx.NewClients(cfg)
+	clients, err := awsx.NewClients(&cfg)
 	if err != nil {
 		return fmt.Errorf("failed to create AWS clients: %w", err)
 	}
