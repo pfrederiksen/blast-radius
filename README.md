@@ -235,36 +235,269 @@ Missing permissions will be logged as warnings and discovery will continue with 
 
 ## Examples
 
-### Tree Output (Default)
+### Real-World Scenarios
 
+#### 1. Understanding Load Balancer Impact
+
+Before making changes to a load balancer, understand its full dependency graph:
+
+```bash
+# Analyze by ALB name
+blast-radius my-production-alb
+
+# Analyze by ARN with increased depth
+blast-radius arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/my-alb/abc123 --depth 3
+
+# Output as visualization
+blast-radius my-production-alb --format dot | dot -Tpng -o alb-dependencies.png
 ```
-$ blast-radius arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/my-alb/abc123
 
+**Example output:**
+```
 [Level 0] Root
-└─ LoadBalancer: my-alb (arn:aws:elasticloadbalancing:...)
+└─ LoadBalancer: my-production-alb (arn:aws:elasticloadbalancing:...)
+   Tags: Environment=production, Team=platform
 
 [Level 1] Direct Dependencies
 ├─ Listener: HTTPS:443 (arn:aws:elasticloadbalancing:...)
-│  └─ [Forward] → TargetGroup: my-tg
-├─ SecurityGroup: alb-sg (sg-12345)
-└─ Route53Record: myapp.example.com (A ALIAS)
+│  DefaultAction: forward
+├─ Listener: HTTP:80 (arn:aws:elasticloadbalancing:...)
+│  DefaultAction: redirect to HTTPS
+├─ SecurityGroup: alb-sg (sg-abc123)
+└─ Route53Record: api.example.com (A ALIAS)
 
 [Level 2] Transitive Dependencies
-└─ TargetGroup: my-tg
-   ├─ ECSService: my-cluster/my-service
-   └─ Instance: i-1234567890 (t3.large)
+├─ TargetGroup: api-tg-blue
+│  ├─ ECSService: prod-cluster/api-service
+│  ├─ Instance: i-0a1b2c3d (healthy, t3.large)
+│  └─ Instance: i-4e5f6g7h (healthy, t3.large)
+└─ TargetGroup: api-tg-green
+   └─ ECSService: prod-cluster/api-service-canary
 ```
 
-### DOT Output
+#### 2. ECS Service Dependency Analysis
+
+Understanding what an ECS service depends on before scaling or updating:
 
 ```bash
+# Analyze ECS service
+blast-radius prod-cluster/api-service
+
+# Use specific region and profile
+blast-radius prod-cluster/api-service --region us-west-2 --profile production
+```
+
+**Example output:**
+```
+[Level 0] Root
+└─ ECSService: prod-cluster/api-service
+   DesiredCount: 4, RunningCount: 4
+
+[Level 1] Direct Dependencies
+├─ ECSTaskDefinition: api-service:42
+│  CPU: 512, Memory: 1024
+│  Containers: api-app, datadog-agent
+├─ IAMRole: ecs-task-execution-role
+├─ IAMRole: api-service-task-role
+├─ TargetGroup: api-tg-blue (arn:aws:elasticloadbalancing:...)
+├─ SecurityGroup: ecs-service-sg (sg-xyz789)
+├─ Subnet: subnet-1a2b3c4d (us-east-1a)
+├─ Subnet: subnet-5e6f7g8h (us-east-1b)
+└─ ScalingPolicy: target-tracking-cpu
+
+[Level 2] Transitive Dependencies
+└─ LoadBalancer: my-production-alb
+   └─ Route53Record: api.example.com
+```
+
+#### 3. Lambda Function Analysis
+
+Discover what triggers a Lambda function and what it connects to:
+
+```bash
+# Analyze Lambda function
+blast-radius my-data-processor
+
+# Find all dependencies including event sources
+blast-radius arn:aws:lambda:us-east-1:123456789012:function:my-data-processor --depth 2
+```
+
+**Example output:**
+```
+[Level 0] Root
+└─ Lambda: my-data-processor
+   Runtime: python3.11, Memory: 512MB, Timeout: 30s
+
+[Level 1] Direct Dependencies
+├─ IAMRole: lambda-execution-role
+├─ SQSQueue: data-ingestion-queue
+│  Trigger: EventSourceMapping (BatchSize: 10)
+├─ EventDestination: dead-letter-queue (OnFailure)
+├─ SecurityGroup: lambda-sg (sg-def456)
+└─ Subnet: subnet-9i0j1k2l (us-east-1a)
+
+[Level 2] Transitive Dependencies
+└─ VPC: vpc-main
+```
+
+#### 4. RDS Database Impact Assessment
+
+Before migrating or modifying a database, see what depends on it:
+
+```bash
+# Analyze RDS instance
+blast-radius my-production-db
+
+# Analyze Aurora cluster
+blast-radius my-aurora-cluster --heuristics rds-endpoint
+```
+
+**Example output:**
+```
+[Level 0] Root
+└─ RDSInstance: my-production-db
+   Engine: postgres 14.7, Class: db.r5.xlarge
+   MultiAZ: true, Endpoint: my-production-db.abc.us-east-1.rds.amazonaws.com
+
+[Level 1] Direct Dependencies
+├─ DBSubnetGroup: prod-db-subnet-group
+│  ├─ Subnet: subnet-db-1a (us-east-1a)
+│  ├─ Subnet: subnet-db-1b (us-east-1b)
+│  └─ Subnet: subnet-db-1c (us-east-1c)
+├─ SecurityGroup: rds-sg (sg-rds123)
+│  Status: active
+├─ DBParameterGroup: postgres14-custom
+│  Status: in-sync
+└─ RDSCluster: my-aurora-cluster
+   (if instance is part of a cluster)
+```
+
+#### 5. Analyzing Aurora Clusters
+
+```bash
+# Discover all instances in a cluster
+blast-radius my-aurora-cluster --depth 2
+```
+
+**Example output:**
+```
+[Level 0] Root
+└─ RDSCluster: my-aurora-cluster
+   Engine: aurora-postgresql 14.7
+   Endpoint: cluster-endpoint.us-east-1.rds.amazonaws.com
+   ReaderEndpoint: cluster-ro-endpoint.us-east-1.rds.amazonaws.com
+
+[Level 1] Direct Dependencies
+├─ RDSInstance: my-aurora-cluster-instance-1
+│  IsClusterWriter: true, Class: db.r5.large
+├─ RDSInstance: my-aurora-cluster-instance-2
+│  IsClusterWriter: false, Class: db.r5.large
+├─ RDSInstance: my-aurora-cluster-instance-3
+│  IsClusterWriter: false, Class: db.r5.large
+├─ DBSubnetGroup: aurora-subnet-group
+├─ SecurityGroup: aurora-sg (sg-aurora123)
+└─ DBClusterParameterGroup: aurora-pg14-custom
+```
+
+### Output Formats
+
+#### Tree (Default) - Human-Friendly
+
+```bash
+blast-radius my-resource
+```
+
+Best for: Quick analysis, terminal output, understanding dependency hierarchy
+
+#### DOT - Graphviz Visualization
+
+```bash
+# Generate PNG
 blast-radius my-alb --format dot | dot -Tpng -o graph.png
+
+# Generate SVG (better for large graphs)
+blast-radius my-alb --format dot | dot -Tsvg -o graph.svg
+
+# Generate PDF
+blast-radius my-alb --format dot | dot -Tpdf -o graph.pdf
 ```
 
-### JSON Output
+Best for: Documentation, presentations, visual analysis
+
+#### JSON - Machine-Readable
 
 ```bash
+# Full graph as JSON
+blast-radius my-resource --format json
+
+# Filter specific resource types
 blast-radius my-alb --format json | jq '.nodes[] | select(.type == "ECSService")'
+
+# Extract all security groups
+blast-radius my-resource --format json | jq '.nodes[] | select(.type == "SecurityGroup") | .name'
+
+# Find all resources in a specific region
+blast-radius my-resource --format json | jq '.nodes[] | select(.region == "us-east-1")'
+
+# Count dependencies by type
+blast-radius my-resource --format json | jq '.nodes | group_by(.type) | map({type: .[0].type, count: length})'
+```
+
+Best for: Automation, CI/CD integration, custom processing
+
+### Common Workflows
+
+#### Pre-Deployment Safety Check
+
+```bash
+#!/bin/bash
+# Check if critical resources will be affected by changes
+
+RESOURCE=$1
+MAX_NODES=100
+
+echo "Analyzing blast radius for: $RESOURCE"
+blast-radius "$RESOURCE" --max-nodes $MAX_NODES --format json > blast-radius.json
+
+# Check if any production resources are affected
+PROD_COUNT=$(jq '.nodes[] | select(.tags.Environment == "production") | .id' blast-radius.json | wc -l)
+
+if [ "$PROD_COUNT" -gt 0 ]; then
+    echo "WARNING: $PROD_COUNT production resources will be affected!"
+    echo "Manual approval required."
+    exit 1
+fi
+```
+
+#### Document Infrastructure Dependencies
+
+```bash
+#!/bin/bash
+# Generate documentation for all critical services
+
+SERVICES=("my-alb" "api-service" "data-processor" "production-db")
+
+for service in "${SERVICES[@]}"; do
+    echo "Documenting: $service"
+    blast-radius "$service" --format dot | dot -Tpng -o "docs/${service}-dependencies.png"
+    blast-radius "$service" > "docs/${service}-dependencies.txt"
+done
+```
+
+#### Multi-Region Analysis
+
+```bash
+#!/bin/bash
+# Analyze the same resource across multiple regions
+
+RESOURCE="my-service"
+REGIONS=("us-east-1" "us-west-2" "eu-west-1")
+
+for region in "${REGIONS[@]}"; do
+    echo "=== $region ==="
+    blast-radius "$RESOURCE" --region "$region" --profile prod
+    echo ""
+done
 ```
 
 ## Development
