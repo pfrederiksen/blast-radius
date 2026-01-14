@@ -17,13 +17,19 @@ Local-first AWS dependency graph CLI to understand blast radius before changes.
 
 ## Installation
 
-### From source
+### Homebrew (macOS/Linux)
+
+```bash
+brew install pfrederiksen/tap/blast-radius
+```
+
+### Go Install
 
 ```bash
 go install github.com/pfrederiksen/blast-radius@latest
 ```
 
-### From binary
+### Binary Download
 
 Download the latest release from the [releases page](https://github.com/pfrederiksen/blast-radius/releases).
 
@@ -167,11 +173,29 @@ go build -o blast-radius
 go test ./...
 ```
 
+### Lint
+
+```bash
+golangci-lint run
+```
+
 ### Test Coverage
 
 ```bash
 go test ./... -coverprofile=coverage.out
 go tool cover -html=coverage.out
+```
+
+### CI/CD
+
+The project uses GitHub Actions for:
+- **PR Checks**: Automated testing, linting, and build verification on every pull request
+- **Releases**: Automated binary builds for multiple platforms and Homebrew tap updates on version tags
+
+To create a release:
+```bash
+git tag -a v0.1.0 -m "Release v0.1.0"
+git push origin v0.1.0
 ```
 
 ## Contributing

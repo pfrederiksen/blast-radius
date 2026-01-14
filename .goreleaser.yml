@@ -1,0 +1,92 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: blast-radius
+    binary: blast-radius
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - '^build:'
+
+brews:
+  - name: blast-radius
+    repository:
+      owner: pfrederiksen
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    folder: Formula
+    homepage: https://github.com/pfrederiksen/blast-radius
+    description: "Local-first AWS dependency graph CLI to understand blast radius before changes"
+    license: Apache-2.0
+    test: |
+      system "#{bin}/blast-radius --help"
+    install: |
+      bin.install "blast-radius"
+
+release:
+  github:
+    owner: pfrederiksen
+    name: blast-radius
+  draft: false
+  prerelease: auto
+  mode: append
+  header: |
+    ## blast-radius {{.Tag}}
+
+    **Install via Homebrew:**
+    ```bash
+    brew install pfrederiksen/tap/blast-radius
+    ```
+
+    **Install via Go:**
+    ```bash
+    go install github.com/pfrederiksen/blast-radius@{{.Tag}}
+    ```
