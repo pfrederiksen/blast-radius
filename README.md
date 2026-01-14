@@ -89,13 +89,18 @@ Flags:
 - By ARN: `arn:aws:elasticloadbalancing:region:account:loadbalancer/app/name/id`
 - By name: `my-load-balancer`
 
-### ECS Services 🚧
-**Status: Planned (Checkpoint 4)**
-- Task definitions and tasks
-- Load balancers and target groups
+### ECS Services ✅
+**Status: Fully implemented**
+- Task definitions with container information
+- Load balancers and target groups (bidirectional discovery with ALB)
 - IAM roles (task role, execution role)
-- Security groups and network configuration
-- Auto Scaling policies (best-effort)
+- Security groups and VPC/subnets (from awsvpc network mode)
+- Application Auto Scaling policies (target tracking, step scaling)
+- Cluster membership
+
+**Resolution methods:**
+- By ARN: `arn:aws:ecs:region:account:service/cluster-name/service-name`
+- By cluster/service: `cluster-name/service-name`
 
 ### Lambda Functions 🚧
 **Status: Planned (Checkpoint 5)**
@@ -155,6 +160,24 @@ Each edge contains:
 - `elasticloadbalancing:DescribeTargetHealth`
 - `route53:ListHostedZones`
 - `route53:ListResourceRecordSets`
+
+**ECS Service Discovery:**
+- Resolves services by ARN or cluster/service name via `DescribeServices`
+- Discovers task definitions via `DescribeTaskDefinition`
+- Extracts container definitions with CPU/memory allocation
+- Discovers IAM roles (task role and execution role) from task definition
+- Discovers security groups and subnets from awsvpc network configuration
+- Links to target groups (bidirectional discovery with ALB)
+- Discovers Application Auto Scaling policies via:
+  - `DescribeScalableTargets` to find auto-scaling configuration
+  - `DescribeScalingPolicies` to get scaling policies (target tracking, step scaling)
+- Discovers cluster membership
+
+**Permission Requirements:**
+- `ecs:DescribeServices`
+- `ecs:DescribeTaskDefinition`
+- `application-autoscaling:DescribeScalableTargets`
+- `application-autoscaling:DescribeScalingPolicies`
 
 Missing permissions will be logged as warnings and discovery will continue with available data.
 
