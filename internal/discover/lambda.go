@@ -2,6 +2,7 @@ package discover
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -277,9 +278,14 @@ func (d *Discoverer) discoverFunctionDestinations(ctx context.Context, functionN
 		FunctionName: &functionName,
 	})
 	if err != nil {
-		// Not all functions have event invoke config, this is not an error
-		slog.Debug("No event invoke config found", "function", functionName)
-		return neighbors, nil
+		// Not all functions have event invoke config - ResourceNotFoundException is expected
+		var notFoundErr *lambdatypes.ResourceNotFoundException
+		if errors.As(err, &notFoundErr) {
+			slog.Debug("No event invoke config found", "function", functionName)
+			return neighbors, nil
+		}
+		// Other errors should be returned
+		return nil, fmt.Errorf("failed to get function event invoke config: %w", err)
 	}
 
 	if output.DestinationConfig == nil {
