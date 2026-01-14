@@ -116,12 +116,21 @@ Flags:
 - By ARN: `arn:aws:lambda:region:account:function:function-name`
 - By name: `function-name`
 
-### RDS Instances/Clusters 🚧
-**Status: Planned (Checkpoint 6)**
-- Subnet groups and VPC
-- Security groups
-- Parameter groups
-- Upstream applications (heuristic-based with `--heuristics rds-endpoint`)
+### RDS Instances/Clusters ✅
+**Status: Fully implemented**
+- DB instances and Aurora clusters
+- Subnet groups and VPC with individual subnets
+- Security groups with status
+- Parameter groups (instance and cluster-level)
+- Cluster membership (instances in clusters, and vice versa)
+- Complete instance and cluster metadata (engine, version, storage, multi-AZ, endpoints)
+- Heuristic-based upstream discovery (experimental, with `--heuristics rds-endpoint`)
+
+**Resolution methods:**
+- Instance by identifier: `my-database-instance`
+- Cluster by identifier: `my-aurora-cluster`
+- By ARN: `arn:aws:rds:region:account:db:instance-name`
+- By ARN: `arn:aws:rds:region:account:cluster:cluster-name`
 
 ## Architecture
 
@@ -202,6 +211,25 @@ Each edge contains:
 - `lambda:GetFunction`
 - `lambda:ListEventSourceMappings`
 - `lambda:GetFunctionEventInvokeConfig`
+
+**RDS Instance/Cluster Discovery:**
+- Resolves instances by identifier or ARN via `DescribeDBInstances`
+- Resolves clusters by identifier or ARN via `DescribeDBClusters`
+- Discovers subnet groups and individual subnets from DB configuration
+- Discovers security groups with status from VPC configuration
+- Discovers parameter groups (instance and cluster-level) with apply status
+- Discovers cluster membership:
+  - For instances: identifies parent cluster if instance is part of Aurora cluster
+  - For clusters: lists all member instances with writer/reader role
+- Extracts complete metadata: engine, version, storage, multi-AZ, endpoints (including reader endpoint for clusters)
+- Heuristic-based upstream discovery (experimental):
+  - When `--heuristics rds-endpoint` flag is enabled
+  - Attempts to find Lambda functions and ECS services that connect to RDS endpoint
+  - Marks connections with `Heuristic: true` in evidence
+
+**Permission Requirements:**
+- `rds:DescribeDBInstances`
+- `rds:DescribeDBClusters`
 
 Missing permissions will be logged as warnings and discovery will continue with available data.
 

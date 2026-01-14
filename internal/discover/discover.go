@@ -138,6 +138,11 @@ func (d *Discoverer) identifyResource(ctx context.Context, resourceID string) (*
 		return node, nil
 	}
 
+	// Try as RDS cluster identifier
+	if node, err := d.resolveRDSCluster(ctx, resourceID); err == nil {
+		return node, nil
+	}
+
 	return nil, fmt.Errorf("unable to identify resource: %s", resourceID)
 }
 
@@ -219,14 +224,4 @@ func (d *Discoverer) parseARN(arn string) (*graph.Node, error) {
 	}
 
 	return node, nil
-}
-
-// Placeholder resolution functions (will be implemented in discovery modules)
-func (d *Discoverer) resolveRDSInstance(ctx context.Context, identifier string) (*graph.Node, error) {
-	return nil, fmt.Errorf("not implemented yet")
-}
-
-// Placeholder discovery functions (will be implemented in separate files)
-func (d *Discoverer) discoverRDS(ctx context.Context, node *graph.Node, g *graph.Graph) ([]string, error) {
-	return nil, nil
 }
