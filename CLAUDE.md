@@ -17,13 +17,12 @@ The `blast-radius` CLI tool was developed incrementally using Claude Code (Sonne
 
 The project was built in structured phases:
 
-1. **Checkpoint 1**: Repository scaffold + Cobra CLI + config loading + structured logging (slog)
-2. **Checkpoint 2**: Graph core types + BFS traversal engine + output scaffolding + tests
-3. **Checkpoint 3**: ALB/NLB discovery + Route53 alias upstream discovery + tests + docs
-4. **Checkpoint 4**: ECS service discovery + tests + docs
-5. **Checkpoint 5**: Lambda function discovery + event sources + tests + docs
-6. **Checkpoint 6**: RDS discovery + heuristic-based upstream discovery + tests + docs
-7. **Checkpoint 7**: Polish (max-nodes limits, evidence annotations, error handling) + examples + coverage optimization
+1. **Checkpoint 1**: Repository scaffold + Cobra CLI + config loading + structured logging (slog) ✅
+2. **Checkpoint 3**: ALB/NLB discovery + Route53 alias upstream discovery + tests + docs ✅
+3. **Checkpoint 4**: ECS service discovery + tests + docs (Planned)
+4. **Checkpoint 5**: Lambda function discovery + event sources + tests + docs (Planned)
+5. **Checkpoint 6**: RDS discovery + heuristic-based upstream discovery + tests + docs (Planned)
+6. **Checkpoint 7**: Polish (max-nodes limits, evidence annotations, error handling) + examples + coverage optimization (Planned)
 
 ### Key Technical Decisions
 
