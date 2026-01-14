@@ -40,6 +40,21 @@ The project was built in structured phases:
 - **Golden tests**: Output format stability (tree and DOT rendering)
 - **Coverage targets**: High coverage for internal packages, especially graph and discovery logic
 
+### CI/CD and Code Quality
+
+**GitHub Actions Pipeline:**
+- Automated PR checks (tests, linting, build verification)
+- GoReleaser for multi-platform releases (Linux, macOS, Windows on amd64/arm64)
+- Homebrew tap integration for automated formula updates
+- Branch protection on `main` requiring passing checks
+
+**Linting Lessons:**
+- Go version compatibility: Used Go 1.22 (avoiding bleeding-edge 1.25+)
+- golangci-lint configuration: Updated deprecated settings (output.format → output.formats, govet.check-shadowing → govet.enable)
+- Performance optimizations: Pass large structs by pointer (gocritic hugeParam), use index-based iteration to avoid copies (gocritic rangeValCopy)
+- Code clarity: Convert if-else chains to switch statements (gocritic ifElseChain)
+- Import formatting: Proper grouping with goimports and local package prefix
+
 ## AI Assistance Details
 
 Claude Code assisted with:

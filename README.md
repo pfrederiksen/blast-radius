@@ -1,5 +1,9 @@
 # blast-radius
 
+[![CI](https://github.com/pfrederiksen/blast-radius/actions/workflows/pr.yml/badge.svg)](https://github.com/pfrederiksen/blast-radius/actions/workflows/pr.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pfrederiksen/blast-radius)](https://goreportcard.com/report/github.com/pfrederiksen/blast-radius)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 Local-first AWS dependency graph CLI to understand blast radius before changes.
 
 ## Overview
