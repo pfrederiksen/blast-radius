@@ -15,12 +15,12 @@ import (
 
 var (
 	// Global flags
-	profile   string
-	region    string
-	depth     int
-	format    string
-	maxNodes  int
-	debug     bool
+	profile    string
+	region     string
+	depth      int
+	format     string
+	maxNodes   int
+	debug      bool
 	heuristics []string
 )
 
@@ -104,7 +104,7 @@ func runGraph(cmd *cobra.Command, args []string) error {
 		"profile", profile)
 
 	// Initialize clients
-	clients, err := awsx.NewClients(cfg)
+	clients, err := awsx.NewClients(&cfg)
 	if err != nil {
 		return fmt.Errorf("failed to create AWS clients: %w", err)
 	}

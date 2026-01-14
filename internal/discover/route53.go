@@ -27,7 +27,8 @@ func (d *Discoverer) discoverRoute53Aliases(ctx context.Context, dnsName string,
 	}
 
 	// Search each hosted zone for alias records pointing to this DNS name
-	for _, zone := range hostedZones {
+	for i := range hostedZones {
+		zone := &hostedZones[i]
 		if zone.Id == nil {
 			continue
 		}
@@ -40,7 +41,8 @@ func (d *Discoverer) discoverRoute53Aliases(ctx context.Context, dnsName string,
 			continue
 		}
 
-		for _, record := range records {
+		for j := range records {
+			record := &records[j]
 			recordNode := d.route53RecordToNode(record, zone, targetNode.Region, targetNode.Account)
 			g.AddNode(recordNode)
 			g.AddEdge(&graph.Edge{
@@ -50,11 +52,11 @@ func (d *Discoverer) discoverRoute53Aliases(ctx context.Context, dnsName string,
 				Evidence: graph.Evidence{
 					APICall: "ListResourceRecordSets",
 					Fields: map[string]any{
-						"Name":            record.Name,
-						"Type":            record.Type,
-						"AliasTarget":     record.AliasTarget,
-						"HostedZoneId":    *zone.Id,
-						"HostedZoneName":  zone.Name,
+						"Name":           record.Name,
+						"Type":           record.Type,
+						"AliasTarget":    record.AliasTarget,
+						"HostedZoneId":   *zone.Id,
+						"HostedZoneName": zone.Name,
 					},
 				},
 			})
@@ -100,7 +102,8 @@ func (d *Discoverer) findAliasRecordsInZone(ctx context.Context, hostedZoneID, t
 			return nil, fmt.Errorf("failed to list resource record sets: %w", err)
 		}
 
-		for _, record := range output.ResourceRecordSets {
+		for i := range output.ResourceRecordSets {
+			record := &output.ResourceRecordSets[i]
 			// Check if this is an alias record
 			if record.AliasTarget == nil || record.AliasTarget.DNSName == nil {
 				continue
@@ -111,7 +114,7 @@ func (d *Discoverer) findAliasRecordsInZone(ctx context.Context, hostedZoneID, t
 
 			// Check if it matches our target
 			if aliasDNS == targetDNS || *record.AliasTarget.DNSName == targetDNSWithDot {
-				matchingRecords = append(matchingRecords, record)
+				matchingRecords = append(matchingRecords, *record)
 			}
 		}
 	}
@@ -120,7 +123,7 @@ func (d *Discoverer) findAliasRecordsInZone(ctx context.Context, hostedZoneID, t
 }
 
 // route53RecordToNode converts a Route53 record to a graph node
-func (d *Discoverer) route53RecordToNode(record route53types.ResourceRecordSet, zone route53types.HostedZone, region, account string) *graph.Node {
+func (d *Discoverer) route53RecordToNode(record *route53types.ResourceRecordSet, zone *route53types.HostedZone, region, account string) *graph.Node {
 	var name string
 	if record.Name != nil {
 		name = strings.TrimSuffix(*record.Name, ".")

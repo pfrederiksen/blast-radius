@@ -24,7 +24,8 @@ func (d *Discoverer) resolveLoadBalancerByName(ctx context.Context, name string)
 			return nil, fmt.Errorf("failed to describe load balancers: %w", err)
 		}
 
-		for _, lb := range output.LoadBalancers {
+		for i := range output.LoadBalancers {
+			lb := &output.LoadBalancers[i]
 			if lb.LoadBalancerName != nil && *lb.LoadBalancerName == name {
 				return d.loadBalancerToNode(lb), nil
 			}
@@ -52,7 +53,7 @@ func (d *Discoverer) discoverLoadBalancer(ctx context.Context, node *graph.Node,
 		return nil, fmt.Errorf("load balancer not found: %s", node.ARN)
 	}
 
-	lb := output.LoadBalancers[0]
+	lb := &output.LoadBalancers[0]
 
 	// Add security groups
 	for _, sgID := range lb.SecurityGroups {
@@ -147,7 +148,8 @@ func (d *Discoverer) discoverListeners(ctx context.Context, lbNode *graph.Node, 
 			return nil, fmt.Errorf("failed to describe listeners: %w", err)
 		}
 
-		for _, listener := range output.Listeners {
+		for i := range output.Listeners {
+			listener := &output.Listeners[i]
 			listenerNode := d.listenerToNode(listener, lbNode.Region, lbNode.Account)
 			g.AddNode(listenerNode)
 			g.AddEdge(&graph.Edge{
@@ -191,7 +193,7 @@ func (d *Discoverer) discoverListeners(ctx context.Context, lbNode *graph.Node, 
 }
 
 // discoverListenerRules discovers rules for a listener
-func (d *Discoverer) discoverListenerRules(ctx context.Context, listener elbv2types.Listener, listenerNode *graph.Node, g *graph.Graph) ([]string, error) {
+func (d *Discoverer) discoverListenerRules(ctx context.Context, listener *elbv2types.Listener, listenerNode *graph.Node, g *graph.Graph) ([]string, error) {
 	var neighbors []string
 
 	paginator := elasticloadbalancingv2.NewDescribeRulesPaginator(d.clients.ELBv2, &elasticloadbalancingv2.DescribeRulesInput{
@@ -262,7 +264,7 @@ func (d *Discoverer) discoverTargetGroup(ctx context.Context, tgARN string, sour
 		return nil, fmt.Errorf("target group not found: %s", tgARN)
 	}
 
-	tg := output.TargetGroups[0]
+	tg := &output.TargetGroups[0]
 	tgNode := d.targetGroupToNode(tg)
 	g.AddNode(tgNode)
 	g.AddEdge(&graph.Edge{
@@ -353,7 +355,7 @@ func (d *Discoverer) discoverTargetGroup(ctx context.Context, tgARN string, sour
 
 // Helper functions to convert AWS types to graph nodes
 
-func (d *Discoverer) loadBalancerToNode(lb elbv2types.LoadBalancer) *graph.Node {
+func (d *Discoverer) loadBalancerToNode(lb *elbv2types.LoadBalancer) *graph.Node {
 	var name string
 	if lb.LoadBalancerName != nil {
 		name = *lb.LoadBalancerName
@@ -396,7 +398,7 @@ func (d *Discoverer) loadBalancerToNode(lb elbv2types.LoadBalancer) *graph.Node 
 	}
 }
 
-func (d *Discoverer) listenerToNode(listener elbv2types.Listener, region, account string) *graph.Node {
+func (d *Discoverer) listenerToNode(listener *elbv2types.Listener, region, account string) *graph.Node {
 	var name string
 	if listener.Port != nil && listener.Protocol != "" {
 		name = fmt.Sprintf("%s:%d", listener.Protocol, *listener.Port)
@@ -421,7 +423,7 @@ func (d *Discoverer) listenerToNode(listener elbv2types.Listener, region, accoun
 	}
 }
 
-func (d *Discoverer) targetGroupToNode(tg elbv2types.TargetGroup) *graph.Node {
+func (d *Discoverer) targetGroupToNode(tg *elbv2types.TargetGroup) *graph.Node {
 	var name string
 	if tg.TargetGroupName != nil {
 		name = *tg.TargetGroupName
