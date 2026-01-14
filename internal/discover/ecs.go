@@ -92,9 +92,9 @@ func (d *Discoverer) discoverECSService(ctx context.Context, node *graph.Node, g
 
 	// Discover task definition
 	if svc.TaskDefinition != nil {
-		tdNeighbors, err := d.discoverTaskDefinition(ctx, *svc.TaskDefinition, node, g)
-		if err != nil {
-			slog.Warn("Failed to discover task definition", "arn", *svc.TaskDefinition, "error", err)
+		tdNeighbors, tdErr := d.discoverTaskDefinition(ctx, *svc.TaskDefinition, node, g)
+		if tdErr != nil {
+			slog.Warn("Failed to discover task definition", "arn", *svc.TaskDefinition, "error", tdErr)
 		} else {
 			neighbors = append(neighbors, tdNeighbors...)
 		}
@@ -201,9 +201,9 @@ func (d *Discoverer) discoverECSService(ctx context.Context, node *graph.Node, g
 	}
 
 	// Discover Application Auto Scaling policies
-	scalingNeighbors, err := d.discoverECSScalingPolicies(ctx, cluster, *svc.ServiceName, node, g)
-	if err != nil {
-		slog.Warn("Failed to discover scaling policies", "error", err)
+	scalingNeighbors, scalingErr := d.discoverECSScalingPolicies(ctx, cluster, *svc.ServiceName, node, g)
+	if scalingErr != nil {
+		slog.Warn("Failed to discover scaling policies", "error", scalingErr)
 	} else {
 		neighbors = append(neighbors, scalingNeighbors...)
 	}
