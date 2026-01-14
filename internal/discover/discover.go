@@ -138,6 +138,11 @@ func (d *Discoverer) identifyResource(ctx context.Context, resourceID string) (*
 		return node, nil
 	}
 
+	// Try as RDS cluster identifier
+	if node, err := d.resolveRDSCluster(ctx, resourceID); err == nil {
+		return node, nil
+	}
+
 	return nil, fmt.Errorf("unable to identify resource: %s", resourceID)
 }
 
@@ -146,13 +151,13 @@ func (d *Discoverer) discoverNode(ctx context.Context, node *graph.Node, g *grap
 	slog.Debug("Discovering dependencies", "nodeType", node.Type, "nodeID", node.ID)
 
 	switch node.Type {
-	case "LoadBalancer":
+	case ResourceTypeLoadBalancer:
 		return d.discoverLoadBalancer(ctx, node, g)
-	case "ECSService":
+	case ResourceTypeECSService:
 		return d.discoverECSService(ctx, node, g)
-	case "Lambda":
+	case ResourceTypeLambda:
 		return d.discoverLambda(ctx, node, g)
-	case "RDSInstance", "RDSCluster":
+	case ResourceTypeRDSInstance, ResourceTypeRDSCluster:
 		return d.discoverRDS(ctx, node, g)
 	default:
 		slog.Debug("No discovery handler for node type", "type", node.Type)
@@ -184,7 +189,7 @@ func (d *Discoverer) parseARN(arn string) (*graph.Node, error) {
 	// Determine type from service and resource
 	switch service {
 	case "elasticloadbalancing":
-		node.Type = "LoadBalancer"
+		node.Type = ResourceTypeLoadBalancer
 		if strings.Contains(resource, "/") {
 			parts := strings.Split(resource, "/")
 			if len(parts) >= 2 {
@@ -193,7 +198,7 @@ func (d *Discoverer) parseARN(arn string) (*graph.Node, error) {
 		}
 	case "ecs":
 		if strings.HasPrefix(resource, "service/") {
-			node.Type = "ECSService"
+			node.Type = ResourceTypeECSService
 			parts := strings.Split(resource, "/")
 			if len(parts) >= 3 {
 				node.Name = parts[len(parts)-1]
@@ -201,17 +206,17 @@ func (d *Discoverer) parseARN(arn string) (*graph.Node, error) {
 			}
 		}
 	case "lambda":
-		node.Type = "Lambda"
+		node.Type = ResourceTypeLambda
 		if strings.HasPrefix(resource, "function:") {
 			node.Name = strings.TrimPrefix(resource, "function:")
 		}
 	case "rds":
 		switch {
 		case strings.HasPrefix(resource, "db:"):
-			node.Type = "RDSInstance"
+			node.Type = ResourceTypeRDSInstance
 			node.Name = strings.TrimPrefix(resource, "db:")
 		case strings.HasPrefix(resource, "cluster:"):
-			node.Type = "RDSCluster"
+			node.Type = ResourceTypeRDSCluster
 			node.Name = strings.TrimPrefix(resource, "cluster:")
 		}
 	default:
@@ -219,14 +224,4 @@ func (d *Discoverer) parseARN(arn string) (*graph.Node, error) {
 	}
 
 	return node, nil
-}
-
-// Placeholder resolution functions (will be implemented in discovery modules)
-func (d *Discoverer) resolveRDSInstance(ctx context.Context, identifier string) (*graph.Node, error) {
-	return nil, fmt.Errorf("not implemented yet")
-}
-
-// Placeholder discovery functions (will be implemented in separate files)
-func (d *Discoverer) discoverRDS(ctx context.Context, node *graph.Node, g *graph.Graph) ([]string, error) {
-	return nil, nil
 }
