@@ -1,0 +1,31 @@
+package discover
+
+// Resource type constants
+const (
+	ResourceTypeLoadBalancer          = "LoadBalancer"
+	ResourceTypeListener              = "Listener"
+	ResourceTypeTargetGroup           = "TargetGroup"
+	ResourceTypeECSService            = "ECSService"
+	ResourceTypeECSTaskDefinition     = "ECSTaskDefinition"
+	ResourceTypeECSCluster            = "ECSCluster"
+	ResourceTypeLambda                = "Lambda"
+	ResourceTypeRDSInstance           = "RDSInstance"
+	ResourceTypeRDSCluster            = "RDSCluster"
+	ResourceTypeIAMRole               = "IAMRole"
+	ResourceTypeSecurityGroup         = "SecurityGroup"
+	ResourceTypeSubnet                = "Subnet"
+	ResourceTypeVPC                   = "VPC"
+	ResourceTypeRoute53Record         = "Route53Record"
+	ResourceTypeDLQ                   = "DLQ"
+	ResourceTypeEventSource           = "EventSource"
+	ResourceTypeSQSQueue              = "SQSQueue"
+	ResourceTypeDynamoDBStream        = "DynamoDBStream"
+	ResourceTypeKinesisStream         = "KinesisStream"
+	ResourceTypeKafkaCluster          = "KafkaCluster"
+	ResourceTypeEventDestination      = "EventDestination"
+	ResourceTypeDBSubnetGroup         = "DBSubnetGroup"
+	ResourceTypeDBParameterGroup      = "DBParameterGroup"
+	ResourceTypeDBClusterParameterGroup = "DBClusterParameterGroup"
+	ResourceTypeScalingPolicy         = "ScalingPolicy"
+	ResourceTypeInstance              = "Instance"
+)

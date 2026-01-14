@@ -44,8 +44,8 @@ func TestRDSInstanceToNode(t *testing.T) {
 	if node.ID != arn {
 		t.Errorf("Expected ID %s, got %s", arn, node.ID)
 	}
-	if node.Type != "RDSInstance" {
-		t.Errorf("Expected Type RDSInstance, got %s", node.Type)
+	if node.Type != ResourceTypeRDSInstance {
+		t.Errorf("Expected Type %s, got %s", ResourceTypeRDSInstance, node.Type)
 	}
 	if node.ARN != arn {
 		t.Errorf("Expected ARN %s, got %s", arn, node.ARN)
@@ -106,8 +106,8 @@ func TestRDSClusterToNode(t *testing.T) {
 	if node.ID != arn {
 		t.Errorf("Expected ID %s, got %s", arn, node.ID)
 	}
-	if node.Type != "RDSCluster" {
-		t.Errorf("Expected Type RDSCluster, got %s", node.Type)
+	if node.Type != ResourceTypeRDSCluster {
+		t.Errorf("Expected Type %s, got %s", ResourceTypeRDSCluster, node.Type)
 	}
 	if node.ARN != arn {
 		t.Errorf("Expected ARN %s, got %s", arn, node.ARN)

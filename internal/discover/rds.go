@@ -53,9 +53,9 @@ func (d *Discoverer) discoverRDS(ctx context.Context, node *graph.Node, g *graph
 	slog.Debug("Discovering RDS dependencies", "type", node.Type, "arn", node.ARN)
 
 	switch node.Type {
-	case "RDSInstance":
+	case ResourceTypeRDSInstance:
 		return d.discoverRDSInstance(ctx, node, g)
-	case "RDSCluster":
+	case ResourceTypeRDSCluster:
 		return d.discoverRDSCluster(ctx, node, g)
 	default:
 		return nil, fmt.Errorf("unknown RDS type: %s", node.Type)
@@ -86,7 +86,7 @@ func (d *Discoverer) discoverRDSInstance(ctx context.Context, node *graph.Node, 
 	if instance.DBSubnetGroup != nil && instance.DBSubnetGroup.DBSubnetGroupName != nil {
 		subnetGroupNode := &graph.Node{
 			ID:      *instance.DBSubnetGroup.DBSubnetGroupName,
-			Type:    "DBSubnetGroup",
+			Type:    ResourceTypeDBSubnetGroup,
 			Name:    *instance.DBSubnetGroup.DBSubnetGroupName,
 			Region:  node.Region,
 			Account: node.Account,
@@ -119,7 +119,7 @@ func (d *Discoverer) discoverRDSInstance(ctx context.Context, node *graph.Node, 
 			}
 			subnetNode := &graph.Node{
 				ID:      *subnet.SubnetIdentifier,
-				Type:    "Subnet",
+				Type:    ResourceTypeSubnet,
 				Name:    *subnet.SubnetIdentifier,
 				Region:  node.Region,
 				Account: node.Account,
@@ -153,7 +153,7 @@ func (d *Discoverer) discoverRDSInstance(ctx context.Context, node *graph.Node, 
 		}
 		sgNode := &graph.Node{
 			ID:      *sg.VpcSecurityGroupId,
-			Type:    "SecurityGroup",
+			Type:    ResourceTypeSecurityGroup,
 			Name:    *sg.VpcSecurityGroupId,
 			Region:  node.Region,
 			Account: node.Account,
@@ -185,7 +185,7 @@ func (d *Discoverer) discoverRDSInstance(ctx context.Context, node *graph.Node, 
 			}
 			pgNode := &graph.Node{
 				ID:      *pg.DBParameterGroupName,
-				Type:    "DBParameterGroup",
+				Type:    ResourceTypeDBParameterGroup,
 				Name:    *pg.DBParameterGroupName,
 				Region:  node.Region,
 				Account: node.Account,
@@ -213,7 +213,7 @@ func (d *Discoverer) discoverRDSInstance(ctx context.Context, node *graph.Node, 
 	if instance.DBClusterIdentifier != nil {
 		clusterNode := &graph.Node{
 			ID:      *instance.DBClusterIdentifier,
-			Type:    "RDSCluster",
+			Type:    ResourceTypeRDSCluster,
 			Name:    *instance.DBClusterIdentifier,
 			Region:  node.Region,
 			Account: node.Account,
@@ -274,7 +274,7 @@ func (d *Discoverer) discoverRDSCluster(ctx context.Context, node *graph.Node, g
 		}
 		instanceNode := &graph.Node{
 			ID:      *member.DBInstanceIdentifier,
-			Type:    "RDSInstance",
+			Type:    ResourceTypeRDSInstance,
 			Name:    *member.DBInstanceIdentifier,
 			Region:  node.Region,
 			Account: node.Account,
@@ -302,7 +302,7 @@ func (d *Discoverer) discoverRDSCluster(ctx context.Context, node *graph.Node, g
 	if cluster.DBSubnetGroup != nil {
 		subnetGroupNode := &graph.Node{
 			ID:      *cluster.DBSubnetGroup,
-			Type:    "DBSubnetGroup",
+			Type:    ResourceTypeDBSubnetGroup,
 			Name:    *cluster.DBSubnetGroup,
 			Region:  node.Region,
 			Account: node.Account,
@@ -330,7 +330,7 @@ func (d *Discoverer) discoverRDSCluster(ctx context.Context, node *graph.Node, g
 		}
 		sgNode := &graph.Node{
 			ID:      *sg.VpcSecurityGroupId,
-			Type:    "SecurityGroup",
+			Type:    ResourceTypeSecurityGroup,
 			Name:    *sg.VpcSecurityGroupId,
 			Region:  node.Region,
 			Account: node.Account,
@@ -357,7 +357,7 @@ func (d *Discoverer) discoverRDSCluster(ctx context.Context, node *graph.Node, g
 	if cluster.DBClusterParameterGroup != nil {
 		pgNode := &graph.Node{
 			ID:      *cluster.DBClusterParameterGroup,
-			Type:    "DBClusterParameterGroup",
+			Type:    ResourceTypeDBClusterParameterGroup,
 			Name:    *cluster.DBClusterParameterGroup,
 			Region:  node.Region,
 			Account: node.Account,
@@ -468,7 +468,7 @@ func (d *Discoverer) rdsInstanceToNode(instance *rdstypes.DBInstance) *graph.Nod
 
 	return &graph.Node{
 		ID:       *instance.DBInstanceArn,
-		Type:     "RDSInstance",
+		Type:     ResourceTypeRDSInstance,
 		ARN:      *instance.DBInstanceArn,
 		Name:     name,
 		Region:   region,
@@ -519,7 +519,7 @@ func (d *Discoverer) rdsClusterToNode(cluster *rdstypes.DBCluster) *graph.Node {
 
 	return &graph.Node{
 		ID:       *cluster.DBClusterArn,
-		Type:     "RDSCluster",
+		Type:     ResourceTypeRDSCluster,
 		ARN:      *cluster.DBClusterArn,
 		Name:     name,
 		Region:   region,
